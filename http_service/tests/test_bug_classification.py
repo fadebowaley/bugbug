@@ -225,3 +225,24 @@ def test_no_api_key(client):
 
     assert rv.status_code == 401
     assert rv.json == {"message": "Error, missing X-API-KEY"}
+
+# Add Test Model for predicting_id_missing Bug
+def test_model_predict_id_missing_bug(client, responses):
+    bug_id = "7890231"
+
+    responses.add(
+        responses.GET,
+        f"https://bugzilla.mozilla.org/rest/bug?id={bug_id}&include_fields=last_change_time&include_fields=id",
+        status=404, )
+    
+
+    def do_request():
+        return client.get(
+            "/component/predict/7890231",
+            headers={API_TOKEN: "test"},
+        )
+
+    rv = do_request()
+    assert rv.status_code == 404
+    assert rv.json == {"message": f"Bug {bug_id} not found"}
+
